@@ -1,48 +1,52 @@
 """
-Database Schemas
+Database Schemas for the Nonprofit Site
 
-Define your MongoDB collection schemas here using Pydantic models.
-These schemas are used for data validation in your application.
+Each Pydantic model below represents one MongoDB collection. The collection
+name will be the lowercase of the class name.
 
-Each Pydantic model represents a collection in your database.
-Model name is converted to lowercase for the collection name:
-- User -> "user" collection
-- Product -> "product" collection
-- BlogPost -> "blogs" collection
+Examples:
+- ContactMessage -> "contactmessage"
+- VolunteerApplication -> "volunteerapplication"
+- Program -> "program"
+- Event -> "event"
+- Subscriber -> "subscriber"
 """
 
-from pydantic import BaseModel, Field
-from typing import Optional
+from pydantic import BaseModel, Field, EmailStr
+from typing import Optional, List
 
-# Example schemas (replace with your own):
 
-class User(BaseModel):
-    """
-    Users collection schema
-    Collection name: "user" (lowercase of class name)
-    """
-    name: str = Field(..., description="Full name")
-    email: str = Field(..., description="Email address")
-    address: str = Field(..., description="Address")
-    age: Optional[int] = Field(None, ge=0, le=120, description="Age in years")
-    is_active: bool = Field(True, description="Whether user is active")
+class Program(BaseModel):
+    title: str = Field(..., description="Program title, e.g., 'After‑School Coding Club'")
+    summary: str = Field(..., description="Short description of the program")
+    age_group: str = Field(..., description="Target ages, e.g., 'Ages 8–12'")
+    topics: List[str] = Field(default_factory=list, description="Key topics covered")
+    image: Optional[str] = Field(None, description="Public image URL")
 
-class Product(BaseModel):
-    """
-    Products collection schema
-    Collection name: "product" (lowercase of class name)
-    """
-    title: str = Field(..., description="Product title")
-    description: Optional[str] = Field(None, description="Product description")
-    price: float = Field(..., ge=0, description="Price in dollars")
-    category: str = Field(..., description="Product category")
-    in_stock: bool = Field(True, description="Whether product is in stock")
 
-# Add your own schemas here:
-# --------------------------------------------------
+class Event(BaseModel):
+    title: str = Field(..., description="Event title")
+    description: str = Field(..., description="What the event is about")
+    date: str = Field(..., description="ISO date string or human readable date")
+    location: str = Field(..., description="Event location or 'Online'")
+    signup_url: Optional[str] = Field(None, description="External registration link if any")
 
-# Note: The Flames database viewer will automatically:
-# 1. Read these schemas from GET /schema endpoint
-# 2. Use them for document validation when creating/editing
-# 3. Handle all database operations (CRUD) directly
-# 4. You don't need to create any database endpoints!
+
+class ContactMessage(BaseModel):
+    name: str = Field(..., description="Sender name")
+    email: EmailStr
+    message: str = Field(..., min_length=5, description="Message body")
+    subject: Optional[str] = Field(None, description="Optional subject line")
+
+
+class VolunteerApplication(BaseModel):
+    name: str
+    email: EmailStr
+    phone: Optional[str] = None
+    interests: List[str] = Field(default_factory=list, description="Areas of interest: mentoring, events, curriculum")
+    notes: Optional[str] = None
+
+
+class Subscriber(BaseModel):
+    email: EmailStr
+    name: Optional[str] = None
